@@ -1,4 +1,4 @@
-# questdb
+# QuestDB
 
 QuestDB is a disk-persisted lightweight embedded edn-based nosql
 database.
