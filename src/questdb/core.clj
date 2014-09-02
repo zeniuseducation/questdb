@@ -30,7 +30,8 @@
   (str dir dbname "/" data-dir uuid ".edn"))
 
 (defn create!
-  "Creates a new database with dbname and make initial directories"
+  "Creates a new database with dbname and make initial directories and
+  files. Example usage (create! \"mydb\")"
   [dbname]
   (if (.exists (io/as-file dir))
     (if (.exists (io/as-file (str dir dbname "/")))
@@ -51,7 +52,9 @@
         {:status true :message (str dbname " has been created")})))
 
 (defn put-doc!
-  "Put data into dbname"
+  "Put data into dbname, data must be a clojure map. However the
+  values inside the data can be any valid clojure collection. Usage
+  examples (put-doc! db {:number 24 :factors [1 2 3 4 6 8 12 24]}"
   [dbname data]
   (let [uuid (uuid)
         fname (id-path dbname uuid)
@@ -61,15 +64,17 @@
         final)))
 
 (defn put-docs!
-  "Put multiple docs in a vector of data to dbname, data must be a seq"
+  "Put multiple docs in a vector of data to dbname, data must be a
+  collection of maps. Usage example
+(put-docs! db [{:n 100 :nfactors 9} {:n 24 :nfactors 8}]"
   [dbname data]
   (doseq [datum data]
     (put-doc! dbname datum)))
 
 (defn get-doc
-  "Get doc from dbname, with two arguments it returns the doc in
+  "Get one doc from dbname, with two arguments it returns the doc in
   dbname with a specified uuid , with three arguments it returns the
-  first doc in dbname with a match KV pair."
+  first doc in dbname with a match KV pair. Returns a map."
   ([dbname uuid]
      (let [fname (id-path dbname uuid)]
        (read-string (slurp fname))))
@@ -79,7 +84,7 @@
 (defn get-docs
   "With one argument it returns all docs in dbname, with two arguments
   it returns all docs in dbname with uuids supplied (which must
-  be a vector of uuid strings"
+  be a vector of uuid strings. Returns a list of maps."
   ([dbname]
      (for [uuid (uuids dbname)]
        (get-doc dbname uuid)))
