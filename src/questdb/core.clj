@@ -75,6 +75,7 @@
                        {(get datum dbkey) #{(:uuid datum)}}))))))
 
 (defn- write-index-keys!
+  "Write all keys in datum to index-key files"
   [dbname datum]
   (doseq [datum-key (keys (dissoc datum :uuid))]
     (write-index-key! dbname datum-key datum)))
@@ -103,59 +104,82 @@
               [])
         {:status true :message (str dbname " has been created")})))
 
-(declare get-docs)
+(declare get-docs find-docs)
 
 (defn get-doc
-  "Get one doc from dbname, with two arguments it returns the doc in
-  dbname with a specified uuid , with three arguments it returns the
-  first doc in dbname with a match KV pair. Returns a map."
+  "Get one doc from dbname, returns the doc in
+  dbname with a specified uuid."
   ([dbname uuid]
      (let [fname (id-path dbname uuid)]
        (let [res-doc (try (read-string (slurp fname))
                           (catch Exception e))]
-         res-doc)))
-  ([dbname kv option]
-     (first (get-docs dbname kv option))))
+         res-doc))))
+
+(defn find-doc
+  "Returns the first doc in dbname which match the supplied key-value
+  in the kv map."
+  [dbname kv option]
+  (first (find-docs dbname kv option)))
 
 (defn get-docs
-  "With one argument it returns all docs in dbname, with two arguments
-  it returns all docs in dbname with uuids supplied (which must
-  be a vector of uuid strings. Returns a list of maps."
+  "When invoked with one argument it returns all docs in dbname. When
+  invoked with two arguments it returns all docs in dbname with uuids
+  supplied (which must be a vector of uuid strings). Returns a list of
+  uuids string or doc maps."
   ([dbname]
      (for [uuid (uuids dbname)]
        (get-doc dbname uuid)))
   ([dbname uuids]
      (for [uuid uuids]
-       (get-doc dbname uuid)))
-  ([dbname kv option]
-     (let [uuids (-> (read-index-file dbname (key (first kv)))
-                     (get (val (first kv))))]
-       (if option
-         (get-docs dbname uuids)
-         uuids))))
+       (get-doc dbname uuid))))
+
+(defn find-docs
+  "Returns uuids or docs in dbname which match the kv pair supplied.
+  kv is a clojure map. Option is expected to be a boolean, when set to
+  true than this function returns all docs that match kv, if not
+  supplied than returns only the uuids. Usage examples: (find-docs db
+  {:n 123} true)"
+  [dbname kv & option]
+  (let [uuids (-> (read-index-file dbname (key (first kv)))
+                  (get (val (first kv))))]
+    (if (first option)
+      (get-docs dbname uuids)
+      uuids)))
 
 (defn put-doc!
   "Put data into dbname, data must be a clojure map. However the
   values inside the data can be any valid clojure collection. Usage
   examples (put-doc! db {:number 24 :factors [1 2 3 4 6 8 12 24]}. If
   the supplied data contains a uuid that exists in database, then data
-  will be merged into existing entry instead."
-  [dbname data]
+  will be merged into existing entry instead. Index-keys is a set of
+  keys you want this data to be indexed with for future querying
+  purpose. Usage example (put-doc! db {:rec-type :number :n 123 :p 23}
+  #{:n :rec-type}. You can also supply :all to tell the function to
+  index all keys in the data."
+  [dbname data & index-keys]
   (if (and (:uuid data)
            (.exists (io/as-file (id-path dbname (:uuid data)))))
     (let [uuid (:uuid data)
           fname (id-path dbname uuid)
           old-data (get-doc dbname uuid)
           final (merge old-data data)]
-      (do (spit fname final)
-          (write-index-keys! dbname final)
+      (do (go (spit fname final)
+              (cond (coll? (first index-keys))
+                    (map #(write-index-key! dbname % final)
+                         index-keys)
+                    (= :all (first index-keys))
+                    (write-index-keys!)))
           final))
     (let [uuid (uuid)
           fname (id-path dbname uuid)
           final (assoc data :uuid uuid)]
-      (do (spit fname final)
-          (add-uuid! dbname uuid)
-          (write-index-keys! dbname final)
+      (do (go (spit fname final)
+              (add-uuid! dbname uuid)
+              (cond (coll? (first index-keys))
+                    (map #(write-index-key! dbname % final)
+                         index-keys)
+                    (= :all (first index-keys))
+                    (write-index-keys!)))
           final))))
 
 (defn put-docs!
@@ -166,7 +190,22 @@
   (for [datum data]
     (:uuid (put-doc! dbname datum))))
 
+
+;; (defn del-doc!!
+;;   "Delete the doc with supplied doc or uuid, if supplying doc, it must
+;;   contain :uuid."
+;;   [dbname doc-or-uuid]
+;;   (if-let [uuid (:uuid doc-or-uuid)]
+;;     (let [old-data (get-doc dbname uuid)]
+;;       (do (del-uuid!! dbname uuid)
+;;           (del-index!! dbname old-data)))
+;;     (let [old-data (get-doc dbname doc-or-uuid)]
+;;       (do (del-uuid!! dbname uuid)
+;;           (del-index!! dbname old-data)))))
+
+
 (defn destroy!!
+  "Destroy the database including all data in the dbname."
   [dbname]
   (fs/delete-dir (str dir dbname "/")))
 

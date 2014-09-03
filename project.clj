@@ -1,4 +1,4 @@
-(defproject zenedu.squest/questdb "0.1.12-SNAPSHOT"
+(defproject zenedu.squest/questdb "0.1.13-SNAPSHOT"
   :description "A lightweight implementation of file-persisted couch-like embedded
   nosql database using edn only data structure"
   :url "https://github.com/squest/questdb"
