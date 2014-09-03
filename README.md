@@ -14,7 +14,7 @@ leiningen
 [zenedu.squest/questdb "0.1.13-SNAPSHOT"]
 
 ```
-[![Clojars Project](http://clojars.org/zenedu.squest/questdb/latest-version.svg)]
+![Clojars Project](http://clojars.org/zenedu.squest/questdb/latest-version.svg)
 
 ## Concept & Rationale
 
