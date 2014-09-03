@@ -65,7 +65,19 @@
       (let [fdata (read-index-file dbname dbkey)]
         (if-let [key-data (->> (get datum dbkey)
                                (get fdata))]
-          nil))))
+          (let [new-key-data (conj key-data
+                                   (:uuid datum))]
+            (spit (index-path dbname dbkey)
+                  (merge fdata
+                         {(get datum dbkey) new-key-data})))
+          (spit (index-path dbname dbkey)
+                (merge fdata
+                       {(get datum dbkey) #{(:uuid datum)}}))))))
+
+(defn- write-index-keys!
+  [dbname datum]
+  (doseq [datum-key (keys (dissoc datum :uuid))]
+    (write-index-key! dbname datum-key datum)))
 
 (defn create!
   "Creates a new database with dbname and make initial directories and
@@ -91,6 +103,8 @@
               [])
         {:status true :message (str dbname " has been created")})))
 
+(declare get-docs)
+
 (defn get-doc
   "Get one doc from dbname, with two arguments it returns the doc in
   dbname with a specified uuid , with three arguments it returns the
@@ -100,8 +114,8 @@
        (let [res-doc (try (read-string (slurp fname))
                           (catch Exception e))]
          res-doc)))
-  ([dbname uuid col]
-     nil))
+  ([dbname kv option]
+     (first (get-docs dbname kv option))))
 
 (defn get-docs
   "With one argument it returns all docs in dbname, with two arguments
@@ -112,7 +126,13 @@
        (get-doc dbname uuid)))
   ([dbname uuids]
      (for [uuid uuids]
-       (get-doc dbname uuid))))
+       (get-doc dbname uuid)))
+  ([dbname kv option]
+     (let [uuids (-> (read-index-file dbname (key (first kv)))
+                     (get (val (first kv))))]
+       (if option
+         (get-docs dbname uuids)
+         uuids))))
 
 (defn put-doc!
   "Put data into dbname, data must be a clojure map. However the
@@ -128,12 +148,14 @@
           old-data (get-doc dbname uuid)
           final (merge old-data data)]
       (do (spit fname final)
+          (write-index-keys! dbname final)
           final))
     (let [uuid (uuid)
           fname (id-path dbname uuid)
           final (assoc data :uuid uuid)]
       (do (spit fname final)
           (add-uuid! dbname uuid)
+          (write-index-keys! dbname final)
           final))))
 
 (defn put-docs!
