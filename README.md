@@ -11,7 +11,7 @@ leiningen
 
 ```clojure
 
-[org.clojars.squest/questdb "0.1.1-SNAPSHOT"]
+[zenedu.squest/questdb "0.1.12-SNAPSHOT"]
 
 ```
 
