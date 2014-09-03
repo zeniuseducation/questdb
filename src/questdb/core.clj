@@ -1,17 +1,24 @@
 (ns questdb.core
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.core.async :refer [go]]))
 
-(defn uuid [] (str (java.util.UUID/randomUUID)))
+
+(defn uuid
+  "A useful function to generate a random uuid."
+  []
+  (str (java.util.UUID/randomUUID)))
 
 (def ^:private dir "resources/questdb/")
 (def ^:private data-dir "data/")
+(def ^:private index-dir "index/")
 (def ^:private query-dir "query/")
 
 (defn- $uuids
   [dbname]
   (str dir dbname "/uuids.edn"))
 
-(defn- uuids
+(defn uuids
+  "Returns a vector of uuids exist in database"
   [dbname]
   (read-string (slurp ($uuids dbname))))
 
@@ -29,6 +36,10 @@
   [dbname uuid]
   (str dir dbname "/" data-dir uuid ".edn"))
 
+(defn- index-path
+  [dbname dbkey]
+  (str dir dbname "/" index-dir (str "key" dbkey ".edn")))
+
 (defn create!
   "Creates a new database with dbname and make initial directories and
   files. Example usage (create! \"mydb\")"
@@ -38,38 +49,20 @@
       {:status false :message "DB already exists in project"}
       (do (doseq [a [(str dir dbname "/")
                      (str dir dbname "/data/")
-                     (str dir dbname "/query/")]]
+                     (str dir dbname "/query/")
+                     (str dir dbname index-dir)]]
             (mkdir! a))
           (spit ($uuids dbname)
                 [])
           {:status true :message (str dbname " has been created!")}))
     (do (doseq [a [(str dir dbname "/")
                    (str dir dbname "/data/")
-                   (str dir dbname "/query/")]]
+                   (str dir dbname "/query/")
+                   (str dir dbname index-dir)]]
           (mkdir! a))
         (spit ($uuids dbname)
               [])
         {:status true :message (str dbname " has been created")})))
-
-(defn put-doc!
-  "Put data into dbname, data must be a clojure map. However the
-  values inside the data can be any valid clojure collection. Usage
-  examples (put-doc! db {:number 24 :factors [1 2 3 4 6 8 12 24]}"
-  [dbname data]
-  (let [uuid (uuid)
-        fname (id-path dbname uuid)
-        final (assoc data :uuid uuid)]
-    (do (spit fname final)
-        (add-uuid! dbname uuid)
-        final)))
-
-(defn put-docs!
-  "Put multiple docs in a vector of data to dbname, data must be a
-  collection of maps. Usage example
-(put-docs! db [{:n 100 :nfactors 9} {:n 24 :nfactors 8}]"
-  [dbname data]
-  (doseq [datum data]
-    (put-doc! dbname datum)))
 
 (defn get-doc
   "Get one doc from dbname, with two arguments it returns the doc in
@@ -91,6 +84,43 @@
   ([dbname uuids]
      (for [uuid uuids]
        (get-doc dbname uuid))))
+
+(defn put-doc!
+  "Put data into dbname, data must be a clojure map. However the
+  values inside the data can be any valid clojure collection. Usage
+  examples (put-doc! db {:number 24 :factors [1 2 3 4 6 8 12 24]}. If
+  the supplied data contains a uuid that exists in database, then data
+  will be merged into existing entry instead."
+  [dbname data]
+  (if (and (:uuid data)
+           (.exists (io/as-file (str dir
+                                     data-dir
+                                     (:uuid data)
+                                     ".edn"))))
+    (let [uuid (:uuid data)
+          fname (id-path dbname uuid)
+          old-data (get-doc dbname uuid)
+          final (merge old-data data)]
+      (do (spit fname final)
+          final))
+    (let [uuid (uuid)
+          fname (id-path dbname uuid)
+          final (assoc data :uuid uuid)]
+      (do (spit fname final)
+          (add-uuid! dbname uuid)
+          final))))
+
+(defn put-docs!
+  "Put multiple docs in a vector of data to dbname, data must be a
+  collection of maps. Usage example (put-docs! db [{:n 100 :nfactors
+  9} {:n 24 :nfactors 8}]. Returns the list of uuids of the added data"
+  [dbname data]
+  (for [datum data]
+    (:uuid (put-doc! dbname datum))))
+
+
+
+
 
 
 
