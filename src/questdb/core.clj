@@ -1,26 +1,28 @@
 (ns questdb.core
   (:require [clojure.java.io :as io]
-            [clojure.core.async :refer [go]]))
-
+            [clojure.core.async :refer [go]]
+            [me.raynes.fs :as fs]))
 
 (defn uuid
   "A useful function to generate a random uuid."
   []
   (str (java.util.UUID/randomUUID)))
 
-(def ^:private dir "resources/questdb/")
-(def ^:private data-dir "data/")
-(def ^:private index-dir "index/")
-(def ^:private query-dir "query/")
+(def dir "resources/questdb/")
+(def data-dir "data/")
+(def index-dir "index/")
+(def query-dir "query/")
 
 (defn- $uuids
   [dbname]
   (str dir dbname "/uuids.edn"))
 
 (defn uuids
-  "Returns a vector of uuids exist in database"
+  "Returns a vector of uuids of docs exist in database"
   [dbname]
-  (read-string (slurp ($uuids dbname))))
+  (let [res (try (read-string (slurp ($uuids dbname)))
+                 (catch Exception e))]
+    res))
 
 (defn- add-uuid!
   [dbname uuid]
@@ -32,13 +34,38 @@
   [fname]
   (.mkdirs (io/as-file fname)))
 
+(defn- db-path
+  [dbname]
+  (str dir dbname "/"))
+
 (defn- id-path
   [dbname uuid]
   (str dir dbname "/" data-dir uuid ".edn"))
 
 (defn- index-path
   [dbname dbkey]
-  (str dir dbname "/" index-dir (str "key" dbkey ".edn")))
+  (str dir dbname "/" index-dir (str "key-" dbkey ".edn")))
+
+(defn- add-index!
+  "Create an index file for a certain key"
+  [dbname dbkey]
+  (if (.exists (io/as-file (index-path dbname dbkey)))
+    false
+    (spit (index-path dbname dbkey)
+          {})))
+
+(defn- read-index-file
+  [dbname dbkey]
+  (read-string (slurp (index-path dbname dbkey))))
+
+(defn- write-index-key!
+  "Write an index file with a given set of data"
+  [dbname dbkey datum]
+  (do (add-index! dbname dbkey)
+      (let [fdata (read-index-file dbname dbkey)]
+        (if-let [key-data (->> (get datum dbkey)
+                               (get fdata))]
+          nil))))
 
 (defn create!
   "Creates a new database with dbname and make initial directories and
@@ -50,7 +77,7 @@
       (do (doseq [a [(str dir dbname "/")
                      (str dir dbname "/data/")
                      (str dir dbname "/query/")
-                     (str dir dbname index-dir)]]
+                     (str dir dbname "/" index-dir)]]
             (mkdir! a))
           (spit ($uuids dbname)
                 [])
@@ -58,7 +85,7 @@
     (do (doseq [a [(str dir dbname "/")
                    (str dir dbname "/data/")
                    (str dir dbname "/query/")
-                   (str dir dbname index-dir)]]
+                   (str dir dbname "/" index-dir)]]
           (mkdir! a))
         (spit ($uuids dbname)
               [])
@@ -70,7 +97,9 @@
   first doc in dbname with a match KV pair. Returns a map."
   ([dbname uuid]
      (let [fname (id-path dbname uuid)]
-       (read-string (slurp fname))))
+       (let [res-doc (try (read-string (slurp fname))
+                          (catch Exception e))]
+         res-doc)))
   ([dbname uuid col]
      nil))
 
@@ -93,10 +122,7 @@
   will be merged into existing entry instead."
   [dbname data]
   (if (and (:uuid data)
-           (.exists (io/as-file (str dir
-                                     data-dir
-                                     (:uuid data)
-                                     ".edn"))))
+           (.exists (io/as-file (id-path dbname (:uuid data)))))
     (let [uuid (:uuid data)
           fname (id-path dbname uuid)
           old-data (get-doc dbname uuid)
@@ -117,6 +143,12 @@
   [dbname data]
   (for [datum data]
     (:uuid (put-doc! dbname datum))))
+
+(defn destroy!!
+  [dbname]
+  (fs/delete-dir (str dir dbname "/")))
+
+
 
 
 
