@@ -9,6 +9,14 @@ WARNING: This is a learning project for now, many of the intended features have 
 
 leiningen
 
+<<<<<<< HEAD
+=======
+```clojure
+
+[zenedu.squest/questdb "0.1.13-SNAPSHOT"]
+
+```
+>>>>>>> FETCH_HEAD
 ![Clojars Project](http://clojars.org/zenedu.squest/questdb/latest-version.svg)
 
 ## Concept & Rationale
