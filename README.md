@@ -3,6 +3,9 @@
 QuestDB is a disk-persisted lightweight embedded edn-based nosql
 database made for clojure.
 
+WARNING: This is intended for teaching/learning/toying with Clojure,
+although we also use for non-critical part of applications.
+
 ## Installation
 
 Put this in your leiningen project.clj :dependencies vector
@@ -290,5 +293,5 @@ Sabda PS (squest)
 
 Copyright © 2014 PT Zenius Education
 
-Distributed under the Eclipse Public License either version 1.0 
-same as clojure.
+Distributed under the Eclipse Public License version 1.0.
+
