@@ -42,9 +42,24 @@
   [dbname uuid]
   (str dir dbname "/" data-dir uuid ".edn"))
 
+(defn- meta-index
+  [dbname]
+  (str (db-path dbname) "index.edn"))
+
+(defn- update-meta
+  [dbname data]
+  (spit (meta-index dbname) data))
+
 (defn- index-path
   [dbname dbkey]
-  (str dir dbname "/" index-dir (str "key-" dbkey ".edn")))
+  (let [base (str (db-path dbname) index-dir)
+        fdata (read-string (slurp (meta-index dbname)))]
+    (if-let [uuid-key (get fdata dbkey)]
+      (str base uuid-key ".edn")
+      (let [id (uuid)]
+        (do (update-meta dbname
+                         (assoc fdata dbkey id))
+            (str base id ".edn"))))))
 
 (defn- add-index!
   "Create an index file for a certain key"
@@ -92,16 +107,20 @@
                      (str dir dbname "/query/")
                      (str dir dbname "/" index-dir)]]
             (mkdir! a))
-          (spit ($uuids dbname)
-                [])
+          (do (spit ($uuids dbname)
+                    [])
+              (spit (meta-index dbname)
+                    {}))
           {:status true :message (str dbname " has been created!")}))
     (do (doseq [a [(str dir dbname "/")
                    (str dir dbname "/data/")
                    (str dir dbname "/query/")
                    (str dir dbname "/" index-dir)]]
           (mkdir! a))
-        (spit ($uuids dbname)
-              [])
+        (do (spit (meta-index dbname)
+                  {})
+            (spit ($uuids dbname)
+                  []))
         {:status true :message (str dbname " has been created")})))
 
 (declare get-docs find-docs)
@@ -163,32 +182,35 @@
           fname (id-path dbname uuid)
           old-data (get-doc dbname uuid)
           final (merge old-data data)]
-      (do (go (spit fname final)
-              (cond (coll? (first index-keys))
-                    (map #(write-index-key! dbname % final)
-                         index-keys)
-                    (= :all (first index-keys))
-                    (write-index-keys!)))
+      (do (spit fname final)
+          (cond (coll? (first index-keys))
+                (map #(write-index-key! dbname % final)
+                     index-keys)
+                (= :all (first index-keys))
+                (write-index-keys! dbname final))
           final))
     (let [uuid (uuid)
           fname (id-path dbname uuid)
           final (assoc data :uuid uuid)]
-      (do (go (spit fname final)
-              (add-uuid! dbname uuid)
-              (cond (coll? (first index-keys))
-                    (map #(write-index-key! dbname % final)
-                         index-keys)
-                    (= :all (first index-keys))
-                    (write-index-keys!)))
+      (do (spit fname final)
+          (add-uuid! dbname uuid)
+          (cond (coll? (first index-keys))
+                (map #(write-index-key! dbname % final)
+                     index-keys)
+                (= :all (first index-keys))
+                (write-index-keys! dbname final))
           final))))
 
 (defn put-docs!
   "Put multiple docs in a vector of data to dbname, data must be a
   collection of maps. Usage example (put-docs! db [{:n 100 :nfactors
   9} {:n 24 :nfactors 8}]. Returns the list of uuids of the added data"
-  [dbname data]
-  (for [datum data]
-    (:uuid (put-doc! dbname datum))))
+  [dbname data & index-keys]
+  (if-let [idx (first index-keys)]
+    (for [datum data]
+      (:uuid (put-doc! dbname datum idx)))
+    (for [datum data]
+      (:uuid (put-doc! dbname datum)))))
 
 
 ;; (defn del-doc!!
