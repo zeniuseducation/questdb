@@ -10,7 +10,8 @@ although we also use for non-critical part of applications.
 
 Put this in your leiningen project.clj :dependencies vector
 
-![Clojars Project](http://clojars.org/zenedu.squest/questdb/latest-version.svg)
+![Clojars Project](https://clojars.org/zenedu.squest/questdb/latest-version.svg)
+
 
 ## Concept & Rationale
 
