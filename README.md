@@ -41,7 +41,12 @@ questdb.core> (db-exists? db)
 ### Add doc/docs
 
 Let's put some data to the db. You can use put-doc! for one doc or
-put-docs! for multiple docs.
+put-docs! for multiple docs.  
+
+The doc in questdb is a simple valid clojure map.
+
+put-doc! receives two arguments, dbname & a map (in which data resided)
+put-docs! receives 2 arguments, dbname & a vector of data maps.
 
 ```clojure
 
@@ -55,6 +60,50 @@ questdb.core> (put-docs! db (for [i (range 1 5)]
     "7ad9d7b8-aad2-4471-9a6e-4b2b90a667a1"
     "fcf01920-db3b-4e45-972f-3acd053c11c2"
     "c3af924e-406f-4d48-9b66-3c99eb665349")
+
+```
+
+### Get doc/docs
+
+To retrieve data, use get-doc or get-docs for multiple docs.
+get-doc must be called with 2 arguments, dbname or uuid of the doc
+get-docs however can be called with one argument dbname and returns all docs in db.
+When calling get-docs with two arguments, the second argument is a list/vector of
+uuids intended to be retrieved. 
+
+```clojure
+
+questdb.core> (get-docs db)
+=> ({:uuid "aa5057ee-a91c-4529-bed0-1446836c073d",
+     :age 35,
+     :name "Sam Seaborn",
+     :type :person}
+ {:uuid "7bd756a6-d2d8-46db-a88f-50f66a65be12",
+  :i 1,
+  :sqr 1,
+  :type :number}
+ {:uuid "7ad9d7b8-aad2-4471-9a6e-4b2b90a667a1",
+  :i 2,
+  :sqr 4,
+  :type :number}
+ {:uuid "fcf01920-db3b-4e45-972f-3acd053c11c2",
+  :i 3,
+  :sqr 9,
+  :type :number}
+ {:uuid "c3af924e-406f-4d48-9b66-3c99eb665349",
+  :i 4,
+  :sqr 16,
+  :type :number})
+
+questdb.core> (get-doc db "c3af924e-406f-4d48-9b66-3c99eb665349",)
+=> {:uuid "c3af924e-406f-4d48-9b66-3c99eb665349", :i 4, :sqr 16, :type :number}
+
+
+questdb.core> (get-docs db ["fcf01920-db3b-4e45-972f-3acd053c11c2"
+"c3af924e-406f-4d48-9b66-3c99eb665349",]) 
+
+=> ({:uuid "fcf01920-db3b-4e45-972f-3acd053c11c2", :i 3, :sqr 9, :type :number}
+{:uuid "c3af924e-406f-4d48-9b66-3c99eb665349", :i 4, :sqr 16, :type :number})
 
 ```
 
