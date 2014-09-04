@@ -1,18 +1,17 @@
 (ns questdb.core
   (:require [clojure.java.io :as io]
             [clojure.core.async :refer [go]]
-            [me.raynes.fs :as fs]
-            [clojure.set :as cs]))
+            [me.raynes.fs :as fs]))
 
 (defn uuid
   "A useful function to generate a random uuid."
   []
   (str (java.util.UUID/randomUUID)))
 
-(def ^:private dir "resources/questdb/")
-(def ^:private data-dir "data/")
-(def ^:private index-dir "index/")
-(def ^:private query-dir "query/")
+(def dir "resources/questdb/")
+(def data-dir "data/")
+(def index-dir "index/")
+(def query-dir "query/")
 
 (defn- $uuids
   [dbname]
@@ -72,51 +71,29 @@
 
 (defn- read-index-file
   [dbname dbkey]
-  (if (.exists (io/as-file (index-path dbname dbkey)))
-    (read-string (slurp (index-path dbname dbkey)))
-    nil))
+  (read-string (slurp (index-path dbname dbkey))))
 
 (defn- write-index-key!
   "Write an index file with a given set of data"
   [dbname dbkey datum]
-  (if (nil? (get datum dbkey))
-    nil
-    (do (add-index! dbname dbkey)
-        (let [fdata (read-index-file dbname dbkey)]
-          (if-let [key-data (->> (get datum dbkey)
-                                 (get fdata))]
-            (let [new-key-data (conj key-data
-                                     (:uuid datum))]
-              (spit (index-path dbname dbkey)
-                    (merge fdata
-                           {(get datum dbkey) new-key-data})))
+  (do (add-index! dbname dbkey)
+      (let [fdata (read-index-file dbname dbkey)]
+        (if-let [key-data (->> (get datum dbkey)
+                               (get fdata))]
+          (let [new-key-data (conj key-data
+                                   (:uuid datum))]
             (spit (index-path dbname dbkey)
                   (merge fdata
-                         {(get datum dbkey) #{(:uuid datum)}})))))))
+                         {(get datum dbkey) new-key-data})))
+          (spit (index-path dbname dbkey)
+                (merge fdata
+                       {(get datum dbkey) #{(:uuid datum)}}))))))
 
 (defn- write-index-keys!
   "Write all keys in datum to index-key files"
   [dbname datum]
   (doseq [datum-key (keys (dissoc datum :uuid))]
     (write-index-key! dbname datum-key datum)))
-
-(defn- match-index
-  [dbname kv]
-  (let [[dbkey dbval] (first kv)
-        index-data (read-index-file dbname dbkey)]
-    (get index-data dbval)))
-
-(defn- walk-index
-  [dbname query]
-  (if (some #(= % :or) (keys query))
-    (apply cs/union
-           (map #(match-index dbname
-                              {(key %) (val %)})
-                query))
-    (apply cs/intersection
-           (map #(match-index dbname
-                              {(key %) (val %)})
-                query))))
 
 (defn create!
   "Creates a new database with dbname and make initial directories and
@@ -179,11 +156,11 @@
   "Returns uuids or docs in dbname which match the kv pair supplied.
   kv is a clojure map. Option is expected to be a boolean, when set to
   true than this function returns all docs that match kv, if not
-  supplied than returns only the uuids. Usage examples:
-- (find-docs db {:n 123 :t 32} true) -> this applies 'and'
-- (find-docs db {:or {:n 123 :t 32}} false)"
-  [dbname kvs & option]
-  (let [uuids (walk-index dbname kvs)]
+  supplied than returns only the uuids. Usage examples: (find-docs db
+  {:n 123} true)"
+  [dbname kv & option]
+  (let [uuids (-> (read-index-file dbname (key (first kv)))
+                  (get (val (first kv))))]
     (if (first option)
       (get-docs dbname uuids)
       uuids)))
