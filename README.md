@@ -1,9 +1,7 @@
 # QuestDB
 
 QuestDB is a disk-persisted lightweight embedded edn-based nosql
-database.
-
-WARNING: This is a learning project for now, many of the intended features have not been implemented yet.
+database made for clojure.
 
 ## Installation
 
@@ -13,9 +11,9 @@ Put this in your leiningen project.clj :dependencies vector
 
 ## Concept & Rationale
 
-Learning the applicability of a language sometime requires an easy start-up way to be able to do 'real-world' stuffs, especially to make the language more playful for beginners without having to do some setups. QuestDB intends to serve the needs for beginners requiring a simple nosql database that can be embedded directly into the project but provides good enough standard CRUDs and basic querying (view in couches' terms).
+Learning the applicability of a language sometime requires a way to be able to do 'real-world' stuffs easily, especially to make the language more playful for beginners without having to do some setups. QuestDB intends to serve the needs for beginners requiring a simple nosql database that can be embedded directly into the project but provides good enough standard CRUDs and basic querying (view in couches' terms).
 
-## Usage 
+## Usage
 
 ### Create database
 
@@ -40,7 +38,7 @@ questdb.core> (db-exists? db)
 
 ### Add doc/docs
 
-Let's put some data to the db. You can use put-doc! for one doc or
+Let's put some data to the db. We can use put-doc! for one doc or
 put-docs! for multiple docs.  
 
 The doc in questdb is a simple valid clojure map.
@@ -66,9 +64,9 @@ questdb.core> (put-docs! db (for [i (range 1 5)]
 
 ### Get doc/docs
 
-To retrieve data, use get-doc or get-docs for multiple docs.  
+To retrieve data, use get-doc for one doc or get-docs for multiple docs.  
 
-get-doc must be called with 2 arguments, dbname or uuid of the doc.  
+get-doc must be called with 2 arguments, dbname and uuid string of the doc.  
 
 get-docs however can be called with one argument dbname and returns all docs in db.  
 
@@ -136,13 +134,15 @@ questdb.core> (find-docs db {:type :number})
 
 ```
 
-Notice the difference between calling find-doc and find-docs even if we use the same 'query'.
+Notice the difference between calling find-doc and find-docs even   
+if we use the same 'query'.
 
-`find-doc` and `find-docs` can also be called with a simple boolean :and :or
+`find-doc` and `find-docs` can also be called with a simple boolean :and :or  
+
 
 ```clojure
 
-;; To better show this capabilities let's add more data
+;; To better show these capabilities let's add some more data
 
 
 questdb.core> (put-docs! db (for [i (range 1 11)] {:number i :even?
@@ -178,7 +178,8 @@ questdb.core> (find-docs db {:even? true :multiple-of-3 true})
 
 ;; As you can see here, without :or the query by-default using :and
 
-;; You can also add option 'false' as third argument if you just need the uuids not the whole data of the docs
+;; You can also add option 'false' as third argument if you just need   
+the uuids not the whole data of the docs
 
 
 questdb.core> (find-docs db {:or {:even? true :multiple-of-3 true}} false) 
@@ -197,7 +198,7 @@ questdb.core> (find-docs db {:or {:even? true :multiple-of-3 true}} false)
 
 ### Updating doc/docs
 
-To update the document, you simply use `put-doc` or `put-docs` in almost similar
+To update the document, you simply use `put-doc!` or `put-docs!` in almost similar
 manner as when you're adding doc/docs. The significant difference here is that
 you need to supply the :uuid of the doc/docs.
 
@@ -226,7 +227,8 @@ questdb.core> (put-doc! db {:number 23 :uuid "2cbea7fc-549d-431d-bf66-51a02cf17a
 To delete doc/docs, we use `del-doc!!` and `del-docs!!`, notice that we use 2 '!'s.
 All 'add' and 'update' functions use one '!' whereas deletion and destroy use 2 '!'s.
 
-Beside deleting the doc/docs. Both deletion functions also delete the entry in indexing files.
+Beside deleting the doc/docs both deletion functions also delete the entry in   
+indexing files.
 
 ```clojure
 
@@ -275,8 +277,10 @@ Refer to the codox-style docs in the doc directory for further documentation of 
 
 ## Notes
 
-QuestDB automatically index data according to its key-value pair. It supposes to make
-querying process faster. The indexing process happens incrementally each time there's update to the database. Since we assume this db used for small sets of data, then we assume performance-wise it's an acceptable behaviour.
+QuestDB automatically indexes data according to its key-value pair. It supposes   
+to make querying process faster. The indexing process happens incrementally   
+each time there's update to the database. Since we assume this db used for   
+small sets of data, then we assume performance-wise it's an acceptable behaviour.
 
 ## Contributor(s)
 
