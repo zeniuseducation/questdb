@@ -1,4 +1,4 @@
-(defproject zenedu.squest/questdb "0.1.14-SNAPSHOT"
+(defproject zenedu.squest/questdb "0.2.0-SNAPSHOT"
   :description "A lightweight implementation of file-persisted couch-like embedded
   nosql database using edn only data structure"
   :url "https://github.com/squest/questdb"
@@ -9,5 +9,6 @@
                  [expectations "2.0.9"]
                  [org.clojure/core.async "0.1.338.0-5c5012-alpha"]]
   :plugins [[codox "0.8.10"]
-            [lein-expectations "0.0.8"]])
+            [lein-expectations "0.0.8"]
+            [lein-autoexpect "1.2.2"]])
 
