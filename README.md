@@ -45,7 +45,8 @@ put-docs! for multiple docs.
 
 The doc in questdb is a simple valid clojure map.
 
-put-doc! receives two arguments, dbname & a map (in which data resided)
+put-doc! receives two arguments, dbname & a map (in which data resided)  
+
 put-docs! receives 2 arguments, dbname & a vector of data maps.
 
 ```clojure
@@ -65,11 +66,12 @@ questdb.core> (put-docs! db (for [i (range 1 5)]
 
 ### Get doc/docs
 
-To retrieve data, use get-doc or get-docs for multiple docs.
-get-doc must be called with 2 arguments, dbname or uuid of the doc
-get-docs however can be called with one argument dbname and returns all docs in db.
+To retrieve data, use get-doc or get-docs for multiple docs.  
+get-doc must be called with 2 arguments, dbname or uuid of the doc.  
+get-docs however can be called with one argument dbname and returns all docs in db.  
 When calling get-docs with two arguments, the second argument is a list/vector of
-uuids intended to be retrieved. 
+uuids intended to be retrieved.  
+
 
 ```clojure
 
