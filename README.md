@@ -149,9 +149,10 @@ if we use the same 'query'.
 ;; To better show these capabilities let's add some more data
 
 
-questdb.core> (put-docs! db (for [i (range 1 11)] {:number i :even?
-			      (even? i) :multiple-of-3 (zero? (rem i
-			      3))}))
+questdb.core> (put-docs! db (for [i (range 1 11)] 
+				{:number i 
+				 :even? (even? i) 
+	 			 :multiple-of-3 (zero? (rem i 3))}))
 
 ;; In your REPL, you will see the list of uuids for the newly added docs
 ;; To see the uuids for all docs you can use (uuids dbname)
@@ -174,7 +175,7 @@ questdb.core> (find-docs db {:or {:even? true :multiple-of-3 true}})
 {:uuid "7ba32673-f01f-4242-b87b-84d1870aa7cb", :number 6, :even? true, 
 :multiple-of-3 true})
 
-;; Let's calling it again without the :or 'operator'
+;; Let's call it again without the :or 'operator'
 
 questdb.core> (find-docs db {:even? true :multiple-of-3 true}) 
 => ({:uuid "7ba32673-f01f-4242-b87b-84d1870aa7cb", :number 6, :even? true,
@@ -217,7 +218,7 @@ questdb.core> (put-doc! db (merge (find-doc db {:number 2}) {:sqr 4})
 => {:sqr 4, :uuid "2cbea7fc-549d-431d-bf66-51a02cf17ad8",
     :number 2, :even? true, :multiple-of-3 false}
 
-:: Here we use the :uuid from above doc, but change the :number value to 23
+;; Here we use the :uuid from above doc, but change the :number value to 23
 ;; The result as you can see is the old-doc merged with the newly supplied data.
 
 questdb.core> (put-doc! db {:number 23 :uuid "2cbea7fc-549d-431d-bf66-51a02cf17ad8"})
