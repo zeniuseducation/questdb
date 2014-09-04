@@ -5,7 +5,10 @@
 
 
 (def db "testdb")
-
+(def ^:private dir "resources/questdb/")
+(def ^:private data-dir "data/")
+(def ^:private index-dir "index/")
+(def ^:private query-dir "query/")
 (def people (atom []))
 
 (expect true
@@ -49,7 +52,8 @@
 (def pdata {:name "Sir Sam Seaborn"
             :rec-type :person
             :status "The one that bravely chickening out"
-            :varian {:species "Xandarese" :addresses ["Xandar" "Tortor"]}})
+            :varian {:species "Xandarese" :addresses
+                     ["Xandar" "Tortor"]}})
 
 (defn p1-data
   []
@@ -90,9 +94,31 @@
         (clojure.set/difference (into #{} (uuids db))
                                 (into #{} @people)))
 
+(def numbers (map #(hash-map :n %
+                             :sqr (* % %)
+                             :even? (even? %)
+                             :type "numbers")
+                  (range 1 21)))
+
+(expect 20
+        (count (put-docs! db numbers :all)))
+
+(expect {:n 2 :sqr 4 :even? true :type "numbers"}
+        (dissoc (find-doc db {:sqr 4} true)
+                :uuid))
+
+(expect (into #{} (range 2 21 2))
+        (into #{} (map :n (find-docs db {:even? true} true))))
+
+(expect (conj (into #{} (range 1 21 2))
+              10)
+        (into #{} (map :n (find-docs db {:or {:even? false
+                                              :sqr 100}} true))))
+
 (expect true
         (destroy!! db))
 
+;; TODO test the querying processes
 
 
 
