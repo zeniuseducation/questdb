@@ -15,7 +15,7 @@ Put this in your leiningen project.clj :dependencies vector
 
 ## Concept & Rationale
 
-Learning the applicability of a language sometime requires a way to be able to do 'real-world' stuffs easily, especially to make the language more playful for beginners without having to do some setups. QuestDB intends to serve the needs for beginners requiring a simple nosql database that can be embedded directly into the project but provides good enough standard CRUDs and basic querying (view in couches' terms).
+Learning a new language sometimes requires a way to be able to do 'real-world' stuffs easily, especially to make the language more playful for beginners without having to do some setups. QuestDB intends to serve the needs for beginners requiring a simple nosql database that can be embedded directly into the project without any installation required, but provides good enough standard CRUDs and basic querying ability (view in couches' terms).
 
 ## Usage
 
