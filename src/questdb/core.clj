@@ -161,7 +161,7 @@
      (for [uuid uuids]
        (get-doc dbname uuid))))
 
-(defn match-index
+(defn- match-index
   [dbname kv]
   (cond (some #(= :or %) (keys kv))
         (apply cs/union
@@ -286,6 +286,7 @@
           (del-file!! dbname doc-or-uuid)))))
 
 (defn del-docs!!
+  "Delete multiple docs given in the list of docs or uuids"
   [dbname docs-or-uuids]
   (doseq [datum docs-or-uuids]
     (del-doc!! dbname datum)))
