@@ -29,7 +29,7 @@ Learning a new language sometimes requires a way to be able to do 'real-world' s
 
 ;; in ns form 
 
-(require [questdb.core :refer :all])
+(:require [questdb.core :refer :all])
 
 questdb.core> (def db "hellodb") 
 => #<Var@74c806dc: "hellodb">
