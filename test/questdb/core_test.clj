@@ -78,7 +78,9 @@
 
 (expect-let [data (p1-data)]
             (assoc data :brigade "xarxar")
-            (put-doc! db (assoc data :brigade "xarxar")))
+            (do (let [this (put-doc! db (assoc data :brigade "xarxar"))]
+                  (Thread/sleep 500)
+                  this)))
 
 (defn num-uuids
   []
@@ -157,6 +159,15 @@
 (expect-let [x (del-docs!! db (find-docs db {:class "reptile"}))]
             3
             (count (find-docs db {:type :animal})))
+
+
+;; Test with quite a lot of data in a sequence
+(expect-let [this (put-docs! db (for [a (range 1 101)
+                                      b ["jojon" "let" "this" "become" "briliant"]]
+                                  {:i a :nama b :type :asal}))]
+            [500 500]
+            [(count this)
+             (count (find-docs db {:type :asal}))])
 
 (expect true
         (destroy!! db))

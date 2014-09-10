@@ -210,20 +210,19 @@
           fname (id-path dbname uuid)
           old-data (get-doc dbname uuid)
           final (merge old-data data)]
-      (do (spit fname final)
-          (cond (coll? (first index-keys))
+      (do (cond (coll? (first index-keys))
                 (map #(write-index-key! dbname % final)
                      index-keys)
                 (= false (first index-keys))
                 nil
                 :else
                 (write-index-keys! dbname final))
+          (spit fname final)
           final))
     (let [uuid (uuid)
           fname (id-path dbname uuid)
           final (assoc data :uuid uuid)]
-      (do (spit fname final)
-          (add-uuid! dbname uuid)
+      (do (add-uuid! dbname uuid)
           (cond (coll? (first index-keys))
                 (map #(write-index-key! dbname % final)
                      index-keys)
@@ -231,7 +230,8 @@
                 nil
                 :else
                 (write-index-keys! dbname final))
-          final))))
+          (spit fname final)
+          final)))) 
 
 (defn put-docs!
   "Put multiple docs in a vector of data to dbname, data must be a
