@@ -6,6 +6,10 @@ database made for clojure.
 WARNING: This is intended for teaching/learning/toying with Clojure,
 although we also use for non-critical part of applications.
 
+In production, we use this library usually when we need a temporary  
+structured storage before actually store in central DB. 
+Or simply use it as a more intelligent storage than a simple file system.
+
 ## Installation
 
 Put this in your leiningen project.clj :dependencies vector
