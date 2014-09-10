@@ -40,7 +40,7 @@ Before we can add anything to the database, obviously first thing we need to do 
   
 ;; Notes for clojure beginners, when you alias a namespace like this  
 ;; then you need to call every function in this ns as qc/[function-name]
-;; for example (qc/create!! ...)
+;; for example (qc/create! ...)
 
 questdb.core> (def db "hellodb") 
 => #<Var@74c806dc: "hellodb">
