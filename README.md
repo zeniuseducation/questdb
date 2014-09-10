@@ -21,6 +21,8 @@ Learning a new language sometimes requires a way to be able to do 'real-world' s
 
 ### Create database
 
+Before we can add anything to the database, obviously first thing we need to do is to create the db so it starts living in our app.
+
 ```clojure
 
 ;; in REPL
@@ -30,6 +32,15 @@ Learning a new language sometimes requires a way to be able to do 'real-world' s
 ;; in ns form 
 
 (:require [questdb.core :refer :all])
+
+;; Example of complete version of ns form
+
+(ns ourapp.core
+  (:require [questdb.core :as qc]))
+  
+;; Notes for clojure beginners, when you alias a namespace like this  
+;; then you need to call every function in this ns as qc/[function-name]
+;; for example (qc/create!! ...)
 
 questdb.core> (def db "hellodb") 
 => #<Var@74c806dc: "hellodb">
