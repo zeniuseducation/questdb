@@ -169,6 +169,11 @@
             [(count this)
              (count (find-docs db {:type :asal}))])
 
+(defn check-final
+  [x]
+  (doseq [data x]
+    (println x)))
+
 (expect true
         (destroy!! db))
 

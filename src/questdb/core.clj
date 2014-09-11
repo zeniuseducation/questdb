@@ -15,6 +15,7 @@
 (def ^:private query-dir "query/")
 
 (defn- $uuids
+  "Simeple thing"
   [dbname]
   (str dir dbname "/uuids.edn"))
 
