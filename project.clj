@@ -1,7 +1,7 @@
-(defproject zenedu.squest/questdb "0.2.1"
+(defproject zenedu.squest/questdb "0.2.2"
   :description "A lightweight disk-persisted embedded
   nosql db using edn inspired by couch"
-  :url "https://github.com/squest/questdb"
+  :url "https://github.com/zeniuseducation/questdb"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
