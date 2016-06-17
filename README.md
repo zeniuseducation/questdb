@@ -14,7 +14,8 @@ Or simply use it as a more intelligent storage than a simple file system.
 
 Put this in your leiningen project.clj :dependencies vector
 
-![Clojars Project](https://clojars.org/zenedu.squest/questdb/latest-version.svg)
+![Clojars Project](https://clojars.org/zenedu.squest/questdb/latest-version.svg)  
+[![Clojars Project](https://img.shields.io/clojars/v/zenedu.squest/questdb.svg)](https://clojars.org/zenedu.squest/questdb)
 
 
 ## Concept & Rationale
