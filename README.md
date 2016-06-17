@@ -16,8 +16,9 @@ Put this in your leiningen project.clj :dependencies vector
 
 ![Clojars Project](https://clojars.org/zenedu.squest/questdb/latest-version.svg)  
 [![Clojars Project](https://img.shields.io/clojars/v/zenedu.squest/questdb.svg)](https://clojars.org/zenedu.squest/questdb)
+![alt tag](https://circleci.com/gh/zeniuseducation/questdb.svg?style=shield&circle-token=:circle-token)
 [![CircleCI](https://circleci.com/gh/zeniuseducation/questdb.svg?style=svg)](https://circleci.com/gh/zeniuseducation/questdb) 
-![alt tag](https://circleci.com/gh/zeniuseducation/Tyrion.svg?style=shield&circle-token=:circle-token)
+
 
 
 ## Concept & Rationale
